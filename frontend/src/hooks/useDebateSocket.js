@@ -249,20 +249,11 @@ export function useDebateSocket(debateId, { onEvent, selectedVoiceURI, preferred
   }
 
   const handleAiTextChunk = useCallback((text) => {
+    // Just accumulate — do NOT speak mid-stream.
+    // Speaking will happen once in the ai_turn_complete handler
+    // so the full response is read smoothly from start to finish.
     sentenceBufRef.current += text;
-
-    // Match complete sentences ending in . ! or ? followed by whitespace or end
-    const sentences = sentenceBufRef.current.match(/[^.!?]+[.!?](\s|$)/g);
-
-    if (sentences) {
-      sentences.forEach(s => {
-        const cleaned = sanitizeTTSText(s);
-        if (cleaned) speakSentence(cleaned);
-      });
-      // Remove spoken portion from buffer
-      sentenceBufRef.current = sentenceBufRef.current.slice(sentences.join('').length);
-    }
-  }, [speakSentence]);
+  }, []);
 
   /* ─────────────────────────────────────────────
      Socket setup / teardown
@@ -353,13 +344,15 @@ export function useDebateSocket(debateId, { onEvent, selectedVoiceURI, preferred
           if (data?.detectedLanguage) {
             detectedLanguageRef.current = data.detectedLanguage;
           }
-          const remaining = sanitizeTTSText(sentenceBufRef.current);
-          if (remaining) {
-            // Flush the leftover sentence buffer (partial sentence not yet spoken)
-            speakSentence(remaining);
+          // Cancel any leftover speech just in case
+          try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+
+          // Speak the full buffered response as ONE clean utterance
+          const fullBuffer = sanitizeTTSText(sentenceBufRef.current);
+          if (fullBuffer) {
+            speakSentence(fullBuffer);
           } else if (data?.fullText && !chunksSpokenRef.current) {
-            // Non-English debate: speak the complete translated text
-            // ONLY if we haven't already spoken any chunks (to prevent double-speaking)
+            // Non-English: speak translated text if buffer was empty
             const fullClean = sanitizeTTSText(data.fullText);
             if (fullClean) speakSentence(fullClean);
           }
