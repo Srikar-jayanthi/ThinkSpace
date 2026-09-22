@@ -1,0 +1,207 @@
+/* ══════════════════════════════════════════════════════════
+   AppFooter — Global Footer Component
+══════════════════════════════════════════════════════════ */
+
+.app-footer {
+  background: #080c16;
+  border-top: 1px solid var(--border, rgba(148, 163, 184, 0.15));
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  padding: 56px 20px 24px;
+  margin-top: 60px;
+}
+
+.app-footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.3fr 1.1fr;
+  gap: 36px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* ── Brand column ── */
+.app-footer-col--brand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.app-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-footer-logo {
+  font-size: 1.6rem;
+}
+
+.app-footer-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.4px;
+}
+
+.app-footer-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary, #94a3b8);
+  margin: 0;
+}
+
+.app-footer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 4px 12px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.status-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 1.8s infinite;
+}
+
+@keyframes pulse-dot {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.5; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Headings & Links ── */
+.app-footer-heading {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 16px;
+}
+
+.app-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-footer-links a {
+  color: var(--text-secondary, #94a3b8);
+  text-decoration: none;
+  font-size: 0.86rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-footer-links a:hover {
+  color: #38bdf8;
+  transform: translateX(3px);
+}
+
+/* ── Educational Pillars ── */
+.app-footer-pillars {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-footer-pillars li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-footer-pillars strong {
+  font-size: 0.84rem;
+  color: var(--text-primary, #f8fafc);
+  font-weight: 600;
+}
+
+.app-footer-pillars span {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  line-height: 1.4;
+}
+
+/* ── Academic Attribution ── */
+.app-footer-tech {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #94a3b8);
+  margin: 0 0 14px;
+}
+
+.app-footer-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  background: rgba(129, 140, 248, 0.1);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* ── Bottom bar ── */
+.app-footer-bottom {
+  max-width: 1280px;
+  margin: 20px auto 0;
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+}
+
+.app-footer-bottom-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-footer-sub {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .app-footer-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-footer {
+    padding: 40px 16px 80px; /* Extra padding for bottom-nav on mobile */
+  }
+  .app-footer-container {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .app-footer-bottom-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,414 @@
+/* ══════════════════════════════════════════════════════════
+   AppNavbar — Global Navigation Header
+══════════════════════════════════════════════════════════ */
+
+.app-navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(11, 15, 25, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border, rgba(148, 163, 184, 0.15));
+  transition: all 0.2s ease;
+}
+
+.app-navbar-container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.app-nav-text-short {
+  display: none;
+}
+
+/* ── Brand / Logo ── */
+.app-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.app-navbar-logo {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.app-navbar-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.4px;
+}
+
+.app-navbar-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+
+/* ── Navigation Links ── */
+.app-navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.app-nav-link-icon {
+  font-size: 0.95rem;
+}
+
+.app-nav-link:hover {
+  color: var(--text-primary, #f8fafc);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-nav-link--active {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+/* ── Right Actions ── */
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.app-nav-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  user-select: none;
+}
+
+.app-nav-badge--streak {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.app-nav-badge--elo {
+  background: rgba(129, 140, 248, 0.12);
+  color: #a5b4fc;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+}
+
+/* Primary CTA */
+.app-nav-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.app-nav-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  opacity: 0.95;
+}
+
+.app-nav-link-btn {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.app-nav-link-btn:hover {
+  color: #ffffff;
+}
+
+/* User Pill */
+.app-nav-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--bg-card, #151d30);
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.2));
+  color: var(--text-primary, #f8fafc);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.app-nav-user-pill:hover,
+.app-nav-user-pill--active {
+  border-color: #38bdf8;
+  background: #1c2640;
+}
+
+.app-nav-avatar {
+  font-size: 0.95rem;
+}
+
+.app-nav-username {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Logout Button */
+.app-nav-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.app-nav-logout-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.app-nav-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+}
+
+/* Exit Button for session */
+.app-nav-exit-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-nav-exit-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+/* Mobile Toggle */
+.app-nav-mobile-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.25));
+  color: var(--text-primary, #f8fafc);
+  font-size: 1.2rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Mobile Drawer */
+.app-navbar-mobile-drawer {
+  display: none;
+  background: #0d1322;
+  border-bottom: 1px solid var(--border, rgba(148, 163, 184, 0.2));
+  padding: 16px 20px 24px;
+}
+
+.app-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--text-secondary, #94a3b8);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.app-mobile-link:hover,
+.app-mobile-link--active {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+}
+
+.app-mobile-divider {
+  height: 1px;
+  background: var(--border, rgba(148, 163, 184, 0.15));
+  margin: 10px 0;
+}
+
+.app-mobile-logout {
+  width: 100%;
+  text-align: left;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Multi-Tier Responsive Breakpoints ── */
+
+/* 1. Standard Laptops, 1366x768 & Scaled Displays (≤ 1380px) */
+@media (max-width: 1380px) {
+  .app-nav-text-full {
+    display: none;
+  }
+  .app-nav-text-short {
+    display: inline;
+  }
+  .app-nav-link {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+  .app-nav-cta-text {
+    display: none;
+  }
+  .app-nav-cta-btn {
+    padding: 6px 10px;
+  }
+  .app-navbar-actions {
+    gap: 8px;
+  }
+  .app-nav-username {
+    max-width: 80px;
+  }
+}
+
+/* 2. Compact Laptops / Scaled Displays (≤ 1180px) */
+@media (max-width: 1180px) {
+  .app-nav-badge--elo {
+    display: none;
+  }
+  .app-nav-logout-text {
+    display: none;
+  }
+  .app-nav-logout-btn {
+    padding: 6px 10px;
+  }
+  .app-nav-link {
+    padding: 5px 6px;
+    font-size: 0.76rem;
+  }
+}
+
+/* 3. Tablets / Landscape Mobile (≤ 1024px) */
+@media (max-width: 1024px) {
+  .app-navbar-links {
+    display: none;
+  }
+  .app-nav-badges {
+    display: none;
+  }
+  .app-nav-mobile-toggle {
+    display: inline-flex;
+  }
+  .app-navbar-mobile-drawer {
+    display: block;
+  }
+}
+
+/* 4. Large Mobile / Phablets (≤ 640px) */
+@media (max-width: 640px) {
+  .app-nav-cta-btn {
+    display: none;
+  }
+  .app-nav-username {
+    display: none;
+  }
+  .app-nav-user-pill {
+    padding: 5px 8px;
+  }
+  .app-nav-logout-btn {
+    display: none;
+  }
+}
+
+/* 5. Small Mobile (≤ 420px) */
+@media (max-width: 420px) {
+  .app-navbar-container {
+    padding: 0 12px;
+  }
+  .app-nav-user-pill {
+    display: none;
+  }
+  .app-navbar-name {
+    font-size: 1.15rem;
+  }
+}

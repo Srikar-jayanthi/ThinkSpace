@@ -1,0 +1,399 @@
+/* ─── Judge Verdict overlay ─── */
+.judge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  animation: judgeOverlayFadeIn 0.6s ease forwards;
+}
+
+@keyframes judgeOverlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.judge-card {
+  background: linear-gradient(145deg, #1a1d2e, #12141f);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 560px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  width: 90vw;
+  text-align: center;
+  animation: judgeCardSlideUp 0.5s ease 0.2s both;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes judgeCardSlideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.judge-header {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.judge-headline {
+  margin: 0 auto 18px;
+  max-width: 44ch;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 149, 0, 0.12);
+  border: 1px solid rgba(255, 149, 0, 0.28);
+  color: #ffd39a;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Winner */
+.judge-winner {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin: 16px 0;
+  animation: judgeWinnerPulse 1.5s ease infinite;
+}
+
+.judge-winner--user {
+  color: #ffd700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+.judge-winner--ai {
+  color: #ff3366;
+  text-shadow: 0 0 30px rgba(255, 51, 102, 0.4);
+}
+
+.judge-winner--draw {
+  color: #aaa;
+}
+
+@keyframes judgeWinnerPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+
+/* Score comparison */
+.judge-scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin: 24px 0;
+}
+
+.judge-score-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.judge-score-number {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.judge-score-number--user {
+  color: #00ff87;
+}
+
+.judge-score-number--ai {
+  color: #ff3366;
+}
+
+.judge-score-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.judge-vs {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Feedback */
+.judge-feedback {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.judge-feedback-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-user, #4f8ef7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.judge-feedback-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+}
+
+.judge-strengths,
+.judge-weaknesses {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.judge-strengths-title,
+.judge-weaknesses-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.judge-strengths-title { color: #00ff87; }
+.judge-weaknesses-title { color: #ff9500; }
+
+.judge-strengths-text,
+.judge-weaknesses-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+}
+
+.judge-grammar {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.judge-summary,
+.judge-persistent {
+  margin-top: 14px;
+  text-align: left;
+}
+
+.judge-summary-title,
+.judge-persistent-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.judge-summary-title {
+  color: #7cc6ff;
+}
+
+.judge-persistent-title {
+  color: #ff7b7b;
+}
+
+.judge-summary-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.55;
+}
+
+.judge-grammar-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  color: #ffcc00; /* Yellow for grammar */
+}
+
+.judge-fallacies {
+  margin-top: 14px;
+  text-align: left;
+  padding: 12px 14px;
+  background: rgba(255, 51, 102, 0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 51, 102, 0.15);
+}
+
+.judge-fallacies-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  color: #ff3366; /* Red for fallacies */
+}
+
+.judge-list--fallacies li {
+  color: rgba(255, 200, 200, 0.85);
+}
+
+.judge-list {
+  margin: 4px 0 0 16px;
+  padding: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+}
+
+.judge-list li {
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Buttons */
+.judge-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.judge-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.judge-btn--primary {
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.judge-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  opacity: 0.95;
+}
+
+.judge-btn--secondary {
+  background: #1c2640;
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.judge-btn--secondary:hover {
+  background: #253354;
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+.judge-btn--share {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.judge-btn--share:hover {
+  background: rgba(16, 185, 129, 0.25);
+  color: #ffffff;
+}
+
+.judge-btn--download {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.judge-btn--download:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
+}
+
+/* ══════════════════════════════
+   RESPONSIVE — Judge Verdict
+   ══════════════════════════════ */
+
+@media (max-width: 480px) {
+  .judge-card {
+    padding: 28px 20px;
+    border-radius: 14px;
+  }
+
+  .judge-header {
+    font-size: 1.3rem;
+    margin-bottom: 14px;
+  }
+
+  .judge-winner {
+    font-size: 1.8rem;
+    margin: 10px 0;
+  }
+
+  /* Stack scores vertically on small screens */
+  .judge-scores {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    margin: 16px 0;
+  }
+
+  .judge-vs {
+    transform: rotate(90deg);
+    font-size: 1rem;
+  }
+
+  .judge-score-number {
+    font-size: 2.4rem;
+  }
+
+  .judge-feedback {
+    padding: 12px;
+    margin: 14px 0;
+  }
+
+  .judge-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .judge-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .judge-card {
+    padding: 20px 14px;
+  }
+
+  .judge-header {
+    font-size: 1.15rem;
+  }
+
+  .judge-winner {
+    font-size: 1.5rem;
+  }
+
+  .judge-score-number {
+    font-size: 2rem;
+  }
+
+  .judge-score-label {
+    font-size: 0.75rem;
+  }
+}
