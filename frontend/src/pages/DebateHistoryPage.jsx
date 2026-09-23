@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../context/AuthContext';
+import { cleanJudgeVerdict } from '../utils/formatters';
 import '../styles/theme.css';
 import '../styles/history.css';
 
@@ -9,7 +10,7 @@ const API = process.env.REACT_APP_API_URL;
 
 /* ══════════════════════════════════════════════════════════
    generateReportHTML — standalone report card for history
-══════════════════════════════════════════════════════════ */
+ ══════════════════════════════════════════════════════════ */
 function generateReportHTML(debate) {
   const date = debate.startedAt
     ? new Date(debate.startedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -19,18 +20,27 @@ function generateReportHTML(debate) {
   const side = debate.userSide ?? '—';
   const diff = debate.difficulty ?? '—';
   const format = (debate.format ?? 'freeform').replace(/_/g, ' ');
-  const score = debate.userFinalScore ?? '—';
-  const isWin = debate.winner === 'user';
-  const isLoss = debate.winner === 'ai';
+
+  const judge = cleanJudgeVerdict(debate.judgeScore);
+  const userScore = judge?.userScore ?? debate.userFinalScore ?? '—';
+  const aiScore = judge?.aiScore ?? 70;
+  const winner = judge?.winner || debate.winner;
+  const isWin = winner === 'user';
+  const isLoss = winner === 'ai';
   const winnerLabel = isWin ? '🏆 YOU WIN' : isLoss ? '🤖 AI WINS' : '🤝 DRAW';
   const winnerColor = isWin ? '#00ff87' : isLoss ? '#ff3366' : '#ffcc00';
+
+  const improveItems = (judge?.areasToImprove || [])
+    .map(a => `<li>${a}</li>`).join('');
+  const grammarItems = (judge?.grammarMistakes || [])
+    .map(g => `<li>${g}</li>`).join('');
 
   const argRows = (debate.arguments ?? []).map((arg, i) => {
     const isUser = arg.speaker === 'user';
     const bg = isUser ? 'rgba(0,255,135,0.04)' : 'rgba(255,51,102,0.03)';
     const border = isUser ? 'rgba(0,255,135,0.1)' : 'rgba(255,51,102,0.1)';
     const labelColor = isUser ? '#00ff87' : '#ff3366';
-    const label = isUser ? `You — Round ${arg.turnNumber ?? i + 1}` : `AI — Round ${arg.turnNumber ?? i + 1}`;
+    const label = isUser ? `You — Round ${arg.turnNumber ?? i + 1}` : `AI Coach — Round ${arg.turnNumber ?? i + 1}`;
     const scoresHtml = arg.scores?.overall != null
       ? `<div class="arg-scores">Logic: ${arg.scores.logic ?? '—'} &nbsp;|&nbsp; Evidence: ${arg.scores.evidence ?? '—'} &nbsp;|&nbsp; Clarity: ${arg.scores.clarity ?? '—'} &nbsp;|&nbsp; Overall: ${arg.scores.overall}</div>`
       : '';
@@ -61,15 +71,21 @@ function generateReportHTML(debate) {
   .meta span { font-size: 0.75rem; color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.06); padding: 4px 12px; border-radius: 20px; }
   .winner-box { text-align: center; padding: 24px; margin-bottom: 28px; background: rgba(255,255,255,0.04); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); }
   .winner-label { font-size: 2.4rem; font-weight: 800; color: ${winnerColor}; }
-  .score-row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; align-items: center; }
+  .score-row { display: flex; gap: 24px; justify-content: center; margin-top: 16px; align-items: center; }
   .score-box { text-align: center; }
   .score-num { font-size: 2.6rem; font-weight: 800; }
   .score-num--user { color: #00ff87; }
+  .score-num--ai { color: #ff3366; }
   .score-lbl { font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
   .vs { font-size: 1.1rem; color: rgba(255,255,255,0.2); }
+  .headline { background: rgba(255,149,0,0.12); border: 1px solid rgba(255,149,0,0.25); border-radius: 10px; padding: 12px; color: #ffd39a; font-size: 0.95rem; font-weight: 600; margin-bottom: 24px; text-align: center; }
   .section { margin-bottom: 26px; }
   .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px; margin-bottom: 12px; }
   .text-block { font-size: 0.88rem; line-height: 1.65; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.03); border-radius: 10px; padding: 14px; border: 1px solid rgba(255,255,255,0.07); }
+  .strengths { background: rgba(0,255,135,0.06); border: 1px solid rgba(0,255,135,0.15); border-radius: 10px; padding: 12px; color: #a0ffd4; font-size: 0.85rem; line-height: 1.5; }
+  .weaknesses { background: rgba(255,80,0,0.06); border: 1px solid rgba(255,80,0,0.18); border-radius: 10px; padding: 12px; color: #ffb490; font-size: 0.85rem; line-height: 1.5; }
+  ul { padding-left: 20px; margin-top: 8px; }
+  li { font-size: 0.84rem; color: rgba(255,255,255,0.65); margin-bottom: 5px; line-height: 1.5; }
   .arg-row { border-radius: 10px; padding: 12px; margin-bottom: 10px; }
   .arg-label { font-size: 0.7rem; font-weight: 700; margin-bottom: 6px; }
   .arg-content { font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.55; }
@@ -94,9 +110,29 @@ function generateReportHTML(debate) {
 <div class="winner-box">
   <div class="winner-label">${winnerLabel}</div>
   <div class="score-row">
-    <div class="score-box"><div class="score-num score-num--user">${score}</div><div class="score-lbl">Your Score</div></div>
+    <div class="score-box">
+      <div class="score-num score-num--user">${userScore}</div>
+      <div class="score-lbl">Your Score</div>
+    </div>
+    <div class="vs">vs</div>
+    <div class="score-box">
+      <div class="score-num score-num--ai">${aiScore}</div>
+      <div class="score-lbl">AI Coach</div>
+    </div>
   </div>
 </div>
+
+${judge?.reportCardHeadline ? `<div class="headline">✨ ${judge.reportCardHeadline}</div>` : ''}
+
+${judge?.feedback ? `<div class="section"><div class="section-title">Coach Evaluation</div><div class="text-block">${judge.feedback}</div></div>` : ''}
+
+${judge?.userStrengths ? `<div class="section"><div class="section-title">Key Strengths</div><div class="strengths">${judge.userStrengths}</div></div>` : ''}
+
+${judge?.userWeaknesses ? `<div class="section"><div class="section-title">Areas to Elevate</div><div class="weaknesses">${judge.userWeaknesses}</div></div>` : ''}
+
+${improveItems ? `<div class="section"><div class="section-title">Specific Focus Recommendations</div><ul>${improveItems}</ul></div>` : ''}
+
+${grammarItems ? `<div class="section"><div class="section-title">Communication & Phrasing Tips</div><ul>${grammarItems}</ul></div>` : ''}
 
 ${argRows ? `<div class="section"><div class="section-title">Full Practice Transcript</div>${argRows}</div>` : ''}
 
@@ -154,6 +190,8 @@ export default function DebateHistoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState('all'); // all | win | loss | draw
   const LIMIT = 15;
+  const [searchParams] = useSearchParams();
+  const queryDebateId = searchParams.get('debateId');
 
   useEffect(() => {
     setLoading(true);
@@ -166,6 +204,26 @@ export default function DebateHistoryPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [page, api]);
+
+  useEffect(() => {
+    if (queryDebateId) {
+      setExpandedId(queryDebateId);
+      if (!detailCache[queryDebateId]) {
+        api.get(`/api/debates/${queryDebateId}`)
+          .then((r) => {
+            const detail = r.data?.debate ?? r.data;
+            if (detail) {
+              setDetailCache(prev => ({ ...prev, [queryDebateId]: detail }));
+              setDebates(prev => {
+                if (prev.some(d => (d._id || d.id) === queryDebateId)) return prev;
+                return [detail, ...prev];
+              });
+            }
+          })
+          .catch(console.error);
+      }
+    }
+  }, [queryDebateId, api]);
 
   const filtered = filter === 'all'
     ? debates
@@ -321,6 +379,110 @@ export default function DebateHistoryPage() {
                             ⚔ Debate Again
                           </button>
                         </div>
+
+                        {/* ── Coach Performance Review (Report Card) ── */}
+                        {(() => {
+                          const judge = cleanJudgeVerdict(detail.judgeScore);
+                          if (!judge) return null;
+                          return (
+                            <div className="history-report-summary" style={{
+                              background: 'rgba(255, 255, 255, 0.03)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: 12,
+                              padding: '16px',
+                              marginBottom: '16px',
+                              textAlign: 'left',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#fff' }}>
+                                  📊 Performance Review & Evaluation
+                                </div>
+                                <div style={{ display: 'flex', gap: 12, alignItems: 'center', fontSize: '0.85rem' }}>
+                                  <span style={{ color: '#00ff87', fontWeight: 700 }}>You: {judge.userScore ?? detail.userFinalScore ?? '—'}</span>
+                                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>vs</span>
+                                  <span style={{ color: '#ff3366', fontWeight: 700 }}>AI Coach: {judge.aiScore ?? 70}</span>
+                                </div>
+                              </div>
+
+                              {judge.reportCardHeadline && (
+                                <div style={{
+                                  background: 'rgba(255, 149, 0, 0.12)',
+                                  border: '1px solid rgba(255, 149, 0, 0.28)',
+                                  borderRadius: 8,
+                                  padding: '10px 14px',
+                                  color: '#ffd39a',
+                                  fontSize: '0.88rem',
+                                  fontWeight: 600,
+                                  marginBottom: 12,
+                                }}>
+                                  ✨ {judge.reportCardHeadline}
+                                </div>
+                              )}
+
+                              {judge.feedback && (
+                                <div style={{
+                                  background: 'rgba(255, 255, 255, 0.02)',
+                                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                                  borderRadius: 8,
+                                  padding: '12px',
+                                  fontSize: '0.85rem',
+                                  color: 'rgba(255, 255, 255, 0.8)',
+                                  lineHeight: 1.6,
+                                  marginBottom: 12,
+                                }}>
+                                  <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 700 }}>
+                                    Coach Evaluation
+                                  </div>
+                                  {judge.feedback}
+                                </div>
+                              )}
+
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 12 }}>
+                                {judge.userStrengths && (
+                                  <div style={{
+                                    background: 'rgba(0, 255, 135, 0.05)',
+                                    border: '1px solid rgba(0, 255, 135, 0.15)',
+                                    borderRadius: 8,
+                                    padding: '10px 12px',
+                                    fontSize: '0.82rem',
+                                    color: '#a0ffd4',
+                                    lineHeight: 1.5,
+                                  }}>
+                                    <div style={{ fontWeight: 700, color: '#00ff87', marginBottom: 4 }}>✅ Key Strengths</div>
+                                    {judge.userStrengths}
+                                  </div>
+                                )}
+                                {judge.userWeaknesses && (
+                                  <div style={{
+                                    background: 'rgba(255, 80, 0, 0.05)',
+                                    border: '1px solid rgba(255, 80, 0, 0.18)',
+                                    borderRadius: 8,
+                                    padding: '10px 12px',
+                                    fontSize: '0.82rem',
+                                    color: '#ffb490',
+                                    lineHeight: 1.5,
+                                  }}>
+                                    <div style={{ fontWeight: 700, color: '#ff7733', marginBottom: 4 }}>⚠️ Focus Upgrade</div>
+                                    {judge.userWeaknesses}
+                                  </div>
+                                )}
+                              </div>
+
+                              {Array.isArray(judge.areasToImprove) && judge.areasToImprove.length > 0 && (
+                                <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', marginTop: 8 }}>
+                                  <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 700 }}>
+                                    Target Recommendations:
+                                  </div>
+                                  <ul style={{ paddingLeft: 18, margin: 0 }}>
+                                    {judge.areasToImprove.map((item, i) => (
+                                      <li key={i} style={{ marginBottom: 3 }}>{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* ── Stats row ── */}
                         {(detail.totalRounds || detail.durationSecs) && (

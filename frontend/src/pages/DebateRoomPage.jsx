@@ -25,6 +25,7 @@ import { useApi } from '../hooks/useApi';
 
 import { useToast } from '../context/ToastContext';
 import { useDebateSocket } from '../hooks/useDebateSocket';
+import { cleanJudgeVerdict } from '../utils/formatters';
 import Confetti from '../components/Confetti';
 import StreakCelebration from '../components/StreakCelebration';
 import '../styles/theme.css';
@@ -36,8 +37,9 @@ import '../styles/judge-verdict.css';
    generateReportCardPDF — builds and downloads an HTML
    report card rendered as a printable document.
 ═══════════════════════════════════════════════════════ */
-function generateReportCardPDF(judgeVerdict, debateInfo, messages) {
-  if (!judgeVerdict) return;
+function generateReportCardPDF(rawJudgeVerdict, debateInfo, messages) {
+  if (!rawJudgeVerdict) return;
+  const judgeVerdict = cleanJudgeVerdict(rawJudgeVerdict) || rawJudgeVerdict;
 
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -54,16 +56,26 @@ function generateReportCardPDF(judgeVerdict, debateInfo, messages) {
     judgeVerdict.winner === 'user' ? '#00ff87' :
     judgeVerdict.winner === 'ai'   ? '#ff3366' : '#ffcc00';
 
-  // Build argument rows
+  // Build argument rows (including both user and coach responses)
   const argRows = (messages || [])
-    .filter(m => m.speaker === 'user')
-    .map((m, i) => `
-      <div class="arg-row">
-        <div class="arg-label">Round ${i + 1} — You</div>
-        <div class="arg-content">${m.text || ''}</div>
-        ${m.scores ? `<div class="arg-scores">Logic: ${m.scores.logic ?? '—'} &nbsp;|&nbsp; Evidence: ${m.scores.evidence ?? '—'} &nbsp;|&nbsp; Clarity: ${m.scores.clarity ?? '—'}</div>` : ''}
-      </div>
-    `).join('');
+    .filter(m => m.text && !m.isPlaceholder)
+    .map((m, i) => {
+      const isUser = m.speaker === 'user';
+      const bg = isUser ? 'rgba(0,255,135,0.04)' : 'rgba(255,51,102,0.03)';
+      const border = isUser ? 'rgba(0,255,135,0.1)' : 'rgba(255,51,102,0.1)';
+      const labelColor = isUser ? '#00ff87' : '#ff3366';
+      const label = isUser ? `Round ${i + 1} — You` : `Round ${i + 1} — Practice Coach (AI)`;
+      const scoresHtml = m.scores
+        ? `<div class="arg-scores">Logic: ${m.scores.logic ?? '—'} &nbsp;|&nbsp; Evidence: ${m.scores.evidence ?? '—'} &nbsp;|&nbsp; Clarity: ${m.scores.clarity ?? '—'}</div>`
+        : '';
+      return `
+        <div class="arg-row" style="background:${bg};border:1px solid ${border}">
+          <div class="arg-label" style="color:${labelColor}">${label}</div>
+          <div class="arg-content">${m.text || ''}</div>
+          ${scoresHtml}
+        </div>
+      `;
+    }).join('');
 
   // Build improve list
   const improveItems = (judgeVerdict.areasToImprove || [])
@@ -451,15 +463,16 @@ export default function DebateRoomPage() {
         break;
 
       /* AI Judge verdict (Addition 6 & 9 Report Card) */
-      case 'judge_verdict':
-        setJudgeVerdict(data);
+      case 'judge_verdict': {
+        const clean = cleanJudgeVerdict(data);
+        setJudgeVerdict(clean);
         setPhase('ended');
-        if (data?.winner === 'user') {
+        if (clean?.winner === 'user') {
           setUserWins((w) => w + 1);
           setShowConfetti(true);
           playVictory();
         }
-        if (data?.winner === 'ai') setAiWins((w) => w + 1);
+        if (clean?.winner === 'ai') setAiWins((w) => w + 1);
         // Streak celebration (Addition 7)
         if (data?.streak?.milestoneReached) {
           setStreakMilestone(data.streak.milestoneReached);
@@ -468,6 +481,7 @@ export default function DebateRoomPage() {
           setStreakFreezeUsed(true);
         }
         break;
+      }
 
       case 'error':
         console.error('[DebateRoom] socket error:', data);
@@ -525,7 +539,30 @@ export default function DebateRoomPage() {
     const fetchDebate = () => {
       api
         .get(`/api/debates/${debateId}`)
-        .then((r) => { if (mounted) setDebateInfo(r.data?.debate ?? r.data); })
+        .then((r) => {
+          if (!mounted) return;
+          const debate = r.data?.debate ?? r.data;
+          setDebateInfo(debate);
+          if (debate?.judgeScore) {
+            const clean = cleanJudgeVerdict(debate.judgeScore);
+            setJudgeVerdict(clean);
+            setPhase('ended');
+            if (clean?.winner === 'user') {
+              setShowConfetti(true);
+            }
+            if (Array.isArray(debate.arguments) && debate.arguments.length > 0) {
+              setMessages((prev) => {
+                if (prev.length > 0) return prev;
+                return debate.arguments.map((arg, idx) => ({
+                  id: `${arg.speaker}-${idx}`,
+                  speaker: arg.speaker,
+                  text: arg.content,
+                  scores: arg.scores,
+                }));
+              });
+            }
+          }
+        })
         .catch((err) => {
           if (!mounted) return;
           console.error('[DebateRoom] Failed to load debate info:', err);

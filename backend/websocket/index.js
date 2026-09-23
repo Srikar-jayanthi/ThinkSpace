@@ -184,17 +184,128 @@ async function persistReportCard(userId, judgeResponse) {
   };
 }
 
+function parseJudgePayload(text, defaultScore = 72) {
+  if (!text) return null;
+  const clean = String(text).replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
+
+  // 1. Try standard JSON.parse
+  try {
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+  } catch (e) {
+    /* Truncated or trailing comma */
+  }
+
+  // 2. Try JSON with quote-closing fix if truncated
+  try {
+    const match = clean.match(/\{[\s\S]*/);
+    if (match) {
+      let candidate = match[0].trim();
+      if (!candidate.endsWith('}')) {
+        candidate = candidate.replace(/,\s*$/, '') + '"}';
+      }
+      return JSON.parse(candidate);
+    }
+  } catch (e) {
+    /* Continue to regex fallback */
+  }
+
+  // 3. Robust regex key extraction
+  const getField = (key) => {
+    const re = new RegExp(`"${key}"\\s*:\\s*"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"?`, 'i');
+    const m = clean.match(re);
+    return m ? m[1].replace(/\\"/g, '"').replace(/\\n/g, ' ').trim() : '';
+  };
+  const getNum = (key) => {
+    const re = new RegExp(`"${key}"\\s*:\\s*(\\d+)`, 'i');
+    const m = clean.match(re);
+    return m ? parseInt(m[1], 10) : null;
+  };
+  const getArray = (key) => {
+    const re = new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*)\\]?`, 'i');
+    const m = clean.match(re);
+    if (!m) return [];
+    try {
+      return JSON.parse(`[${m[1]}]`);
+    } catch {
+      return m[1].split(',').map(s => s.replace(/["']/g, '').trim()).filter(Boolean);
+    }
+  };
+
+  const reportCardHeadline = getField('reportCardHeadline');
+  let feedback = getField('feedback');
+  const userStrengths = getField('userStrengths');
+  const userWeaknesses = getField('userWeaknesses');
+  const winner = getField('winner');
+  const userScore = getNum('userScore');
+  const aiScore = getNum('aiScore');
+  const areasToImprove = getArray('areasToImprove');
+  const grammarMistakes = getArray('grammarMistakes');
+
+  if (!feedback) {
+    const fbMatch = clean.match(/"feedback"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"|$)/i);
+    if (fbMatch) {
+      feedback = fbMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' ').trim();
+    }
+  }
+
+  if (feedback || reportCardHeadline || userScore != null) {
+    return {
+      reportCardHeadline,
+      userScore: userScore ?? defaultScore,
+      aiScore: aiScore ?? 70,
+      winner: winner || (userScore && aiScore ? (userScore > aiScore ? 'user' : 'ai') : 'draw'),
+      feedback,
+      userStrengths,
+      userWeaknesses,
+      areasToImprove,
+      grammarMistakes,
+    };
+  }
+  return null;
+}
+
 function sanitizeJudgeResponse(judgeResponse, fallbackFeedback = '', mlAverage = 0) {
+  // If judgeResponse is a raw JSON string or feedback contains JSON:
+  if (typeof judgeResponse === 'string') {
+    judgeResponse = parseJudgePayload(judgeResponse, mlAverage || 72) || {};
+  }
+
+  let cleanedFeedback = String(judgeResponse?.feedback || fallbackFeedback || '').trim();
+  let extractedHeadline = String(judgeResponse?.reportCardHeadline || '').trim();
+  let extractedStrengths = String(judgeResponse?.userStrengths || '').trim();
+  let extractedWeaknesses = String(judgeResponse?.userWeaknesses || '').trim();
+
+  // If feedback was serialized as a nested JSON string (e.g. from truncated LLM response)
+  if (cleanedFeedback.startsWith('{') && cleanedFeedback.includes('"feedback"')) {
+    const parsedInner = parseJudgePayload(cleanedFeedback, mlAverage || 72);
+    if (parsedInner) {
+      if (parsedInner.feedback) cleanedFeedback = parsedInner.feedback;
+      if (parsedInner.reportCardHeadline) extractedHeadline = parsedInner.reportCardHeadline;
+      if (parsedInner.userStrengths) extractedStrengths = parsedInner.userStrengths;
+      if (parsedInner.userWeaknesses) extractedWeaknesses = parsedInner.userWeaknesses;
+      if (parsedInner.areasToImprove?.length && !judgeResponse?.areasToImprove?.length) {
+        judgeResponse.areasToImprove = parsedInner.areasToImprove;
+      }
+      if (parsedInner.grammarMistakes?.length && !judgeResponse?.grammarMistakes?.length) {
+        judgeResponse.grammarMistakes = parsedInner.grammarMistakes;
+      }
+      if (parsedInner.userScore && !judgeResponse?.userScore) {
+        judgeResponse.userScore = parsedInner.userScore;
+      }
+      if (parsedInner.aiScore && !judgeResponse?.aiScore) {
+        judgeResponse.aiScore = parsedInner.aiScore;
+      }
+    }
+  }
+
   const areasToImprove = normalizeList(judgeResponse?.areasToImprove);
   const grammarMistakes = normalizeList(judgeResponse?.grammarMistakes);
   const fallacies = normalizeList(judgeResponse?.fallacies);
-  const userWeaknesses = String(judgeResponse?.userWeaknesses || '').trim();
-  const reportCardHeadline = String(
-    judgeResponse?.reportCardHeadline ||
-    (areasToImprove[0]
-      ? `Your next biggest upgrade is: ${areasToImprove[0]}`
-      : 'Solid effort with constructive reasoning to build upon.')
-  ).trim();
+  const userWeaknesses = extractedWeaknesses || (areasToImprove[0] || 'Your rebuttals and clarity still need more discipline.');
+  const reportCardHeadline = extractedHeadline || (areasToImprove[0]
+    ? `Your next biggest upgrade is: ${areasToImprove[0]}`
+    : 'Solid effort with constructive reasoning to build upon.');
 
   let rawUserScore = Number(judgeResponse?.userScore);
   if (isNaN(rawUserScore) || rawUserScore <= 0) {
@@ -215,8 +326,6 @@ function sanitizeJudgeResponse(judgeResponse, fallbackFeedback = '', mlAverage =
   rawAiScore = Math.max(30, Math.min(99, rawAiScore));
 
   // Deterministic, mathematically sound winner rule:
-  // If score difference is >= 4: decisive winner
-  // If score difference is within 3 points: balanced draw
   let deterministicWinner = 'draw';
   const scoreDiff = finalUserScore - rawAiScore;
   if (scoreDiff >= 4) {
@@ -231,9 +340,9 @@ function sanitizeJudgeResponse(judgeResponse, fallbackFeedback = '', mlAverage =
     userScore: finalUserScore,
     aiScore: rawAiScore,
     winner: deterministicWinner,
-    feedback: String(judgeResponse?.feedback || fallbackFeedback || 'Good effort, but your case still needs tighter execution.').trim(),
-    userStrengths: String(judgeResponse?.userStrengths || 'You showed effort and stayed engaged.').trim(),
-    userWeaknesses: userWeaknesses || (areasToImprove[0] || 'Your rebuttals and clarity still need more discipline.'),
+    feedback: cleanedFeedback || 'Good effort, but your case still needs tighter execution.',
+    userStrengths: extractedStrengths || 'You showed effort and stayed engaged with the discussion.',
+    userWeaknesses,
     areasToImprove,
     grammarMistakes,
     fallacies,
@@ -1104,12 +1213,12 @@ Respond ONLY in this JSON format:
       const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
       judgeResponse = JSON.parse(jsonMatch ? jsonMatch[0] : cleanText);
     } catch {
-      judgeResponse = {
+      judgeResponse = parseJudgePayload(judgeText, avgOverall) || {
         reportCardHeadline: 'Engaging session with clear foundational reasoning.',
         userScore: avgOverall || 72,
         aiScore: 70,
         winner: (avgOverall && avgOverall >= 70) ? 'user' : 'draw',
-        feedback: judgeText || 'You articulated your points clearly and maintained consistent focus throughout this practice round.',
+        feedback: 'You articulated your points clearly and maintained consistent focus throughout this practice round.',
         userStrengths: 'Demonstrated clear structure and maintained perspective on the topic.',
         userWeaknesses: 'Incorporate more cited research and counter-examples to deepen persuasion.',
         areasToImprove: ['Back key claims with specific real-world studies', 'Anticipate and address opposing counter-arguments directly'],
