@@ -64,5 +64,19 @@ export const cleanJudgeVerdict = (verdict) => {
     if (m) v.feedback = m[1].replace(/\\"/g, '"').replace(/\\n/g, ' ').trim();
   }
 
+  // If the verdict object has no real content (e.g. empty Mongoose subdocument default), return null
+  const hasRealContent = Boolean(
+    (v.feedback && String(v.feedback).trim().length > 0) ||
+    (v.reportCardHeadline && String(v.reportCardHeadline).trim().length > 0) ||
+    (v.userScore != null && !isNaN(Number(v.userScore))) ||
+    (v.aiScore != null && !isNaN(Number(v.aiScore))) ||
+    (Array.isArray(v.areasToImprove) && v.areasToImprove.length > 0) ||
+    (v.userStrengths && String(v.userStrengths).trim().length > 0)
+  );
+
+  if (!hasRealContent) {
+    return null;
+  }
+
   return v;
 };

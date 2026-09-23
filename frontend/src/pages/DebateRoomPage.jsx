@@ -543,8 +543,10 @@ export default function DebateRoomPage() {
           if (!mounted) return;
           const debate = r.data?.debate ?? r.data;
           setDebateInfo(debate);
-          if (debate?.judgeScore) {
-            const clean = cleanJudgeVerdict(debate.judgeScore);
+          // Only auto-restore report card if the debate was ALREADY concluded and has a real judge verdict
+          const isConcluded = Boolean(debate?.endedAt || debate?.currentPhase === 'ended');
+          const clean = cleanJudgeVerdict(debate?.judgeScore);
+          if (isConcluded && clean) {
             setJudgeVerdict(clean);
             setPhase('ended');
             if (clean?.winner === 'user') {
