@@ -1,14 +1,37 @@
 const nodemailer = require('nodemailer');
 
 /* ─────────────────────────────────────────────────────────────
-   Email Service — Nodemailer SMTP via Gmail App Password
-   SMTP_USER = contact.srikar.jayanthi@gmail.com
-   SMTP_PASS = Gmail App Password (16 chars)
+   Email Service — Dual-mode:
+     1. Resend HTTP API  (production — works on Render free tier)
+     2. Nodemailer SMTP  (local dev fallback)
 ───────────────────────────────────────────────────────────── */
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',')[0].trim();
 
-/* ── SMTP Transporter (Gmail) ── */
+/* ── Resend (HTTP API — works on all cloud hosts) ── */
+async function sendViaResend({ to, subject, html }) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'ThinkSpace <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.message || JSON.stringify(data));
+  // eslint-disable-next-line no-console
+  console.log(`📧 [RESEND] Email sent to: ${to} | ID: ${data.id}`);
+  return { accepted: [to], provider: 'resend', id: data.id };
+}
+
+/* ── Nodemailer SMTP (local dev) ── */
 let _smtpTransporter;
 function getSmtpTransporter() {
   if (_smtpTransporter) return _smtpTransporter;
@@ -27,40 +50,49 @@ function getSmtpTransporter() {
   return _smtpTransporter;
 }
 
-/* ── Main sendMail ── */
-async function sendMail({ to, subject, html }) {
+async function sendViaSmtp({ to, subject, html }) {
   const FROM = process.env.SMTP_USER || 'noreply@thinkspace.app';
+  const transporter = getSmtpTransporter();
+  const info = await transporter.sendMail({
+    from: `"ThinkSpace" <${FROM}>`,
+    to,
+    subject,
+    html,
+  });
+  // eslint-disable-next-line no-console
+  console.log(`📧 [SMTP] Email sent to: ${to} | ID: ${info.messageId}`);
+  return info;
+}
 
-  // Send via Gmail SMTP if credentials are set
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+/* ── Main sendMail: Resend → SMTP → console fallback ── */
+async function sendMail({ to, subject, html }) {
+  // 1. Try Resend first (HTTP — works on Render free tier)
+  if (process.env.RESEND_API_KEY) {
     try {
-      const transporter = getSmtpTransporter();
-      const info = await transporter.sendMail({
-        from: `"ThinkSpace" <${FROM}>`,
-        to,
-        subject,
-        html,
-      });
-      // eslint-disable-next-line no-console
-      console.log(`📧 [SMTP] Email sent to: ${to} | ID: ${info.messageId}`);
-      return info;
+      return await sendViaResend({ to, subject, html });
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error('❌ [SMTP] Failed:', err.message);
+      console.error('❌ [RESEND] Failed:', err.message, '— falling back to SMTP');
     }
   }
 
-  // Console fallback (so registration never breaks even without email config)
+  // 2. Try SMTP (works locally with Gmail App Password)
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    try {
+      return await sendViaSmtp({ to, subject, html });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('❌ [SMTP] Failed:', err.message, '— falling back to console log');
+    }
+  }
+
+  // 3. Console fallback — registration never breaks even without email config
   // eslint-disable-next-line no-console
   console.log('\n📧 ══════════════════════════════════════');
   // eslint-disable-next-line no-console
-  console.log(`   ⚠️  No SMTP configured — logging to console`);
+  console.log(`   ⚠️  No email provider — logging to console`);
   // eslint-disable-next-line no-console
-  console.log(`   To: ${to}`);
-  // eslint-disable-next-line no-console
-  console.log(`   Subject: ${subject}`);
-  // eslint-disable-next-line no-console
-  console.log(`   Body: ${html.replace(/<[^>]*>/g, '')}`);
+  console.log(`   To: ${to} | Subject: ${subject}`);
   // eslint-disable-next-line no-console
   console.log('══════════════════════════════════════\n');
   return { accepted: [to], fallback: true };
@@ -112,12 +144,12 @@ async function sendPasswordResetEmail(email, token) {
             Reset My Password
           </a>
         </div>
-        <p style="color: #888; font-size: 13px;">Or copy and paste this link into your browser:<br>
+        <p style="color: #888; font-size: 13px;">Or copy and paste this link:<br>
           <a href="${resetUrl}" style="color: #7c5cfc;">${resetUrl}</a>
         </p>
         <p style="color: #e74c3c; font-size: 13px; font-weight: 600;">⏰ This link expires in 1 hour.</p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-        <p style="color: #aaa; font-size: 12px;">If you didn't request a password reset, you can safely ignore this email. Your password will not change.</p>
+        <p style="color: #aaa; font-size: 12px;">If you didn't request a password reset, you can safely ignore this email.</p>
       </div>
     `,
   });
