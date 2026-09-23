@@ -348,8 +348,19 @@ export default function DebateHistoryPage() {
                   {/* Result */}
                   <ResultBadge winner={d.winner} />
 
-                  {/* Expand chevron */}
-                  <span className="expand-chevron" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+                  {/* Expand button */}
+                  <button
+                    type="button"
+                    className={`history-expand-btn ${isExpanded ? 'history-expand-btn--active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isExpanded) { setExpandedId(null); return; }
+                      setExpandedId(id);
+                      fetchDetail(id);
+                    }}
+                  >
+                    {isExpanded ? 'Hide Report ▲' : 'View Report ▼'}
+                  </button>
                 </div>
 
                 {/* ── Expanded section ── */}
