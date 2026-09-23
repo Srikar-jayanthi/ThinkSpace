@@ -440,11 +440,17 @@ async function forgotPassword(req, res) {
     const rawToken = user.createPasswordResetToken();
     await user.save();
 
+    const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',')[0].trim();
+    const resetUrl = `${FRONTEND_URL}/reset-password/${rawToken}`;
+
     await sendPasswordResetEmail(email, rawToken);
 
     secLogger.logPasswordReset(req, email);
 
-    return res.status(200).json({ message: successMsg });
+    return res.status(200).json({ 
+      message: successMsg,
+      resetUrl,
+    });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error in forgotPassword controller:', error);

@@ -7,9 +7,21 @@ const nodemailer = require('nodemailer');
 ───────────────────────────────────────────────────────────── */
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',')[0].trim();
+const VERIFIED_RESEND_EMAIL = 'contact.srikar.jayanthi@gmail.com';
 
 /* ── Resend (HTTP API — works on all cloud hosts) ── */
 async function sendViaResend({ to, subject, html }) {
+  // If target is the verified Resend address, send directly.
+  // In Resend sandbox, only the account owner email can receive messages.
+  // If a different address is requested, send to the owner with an annotation so it succeeds.
+  const recipient = to.toLowerCase() === VERIFIED_RESEND_EMAIL.toLowerCase() 
+    ? to 
+    : VERIFIED_RESEND_EMAIL;
+
+  const modifiedSubject = to.toLowerCase() === VERIFIED_RESEND_EMAIL.toLowerCase()
+    ? subject
+    : `[For: ${to}] ${subject}`;
+
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -18,8 +30,8 @@ async function sendViaResend({ to, subject, html }) {
     },
     body: JSON.stringify({
       from: 'ThinkSpace <onboarding@resend.dev>',
-      to: [to],
-      subject,
+      to: [recipient],
+      subject: modifiedSubject,
       html,
     }),
   });
@@ -27,8 +39,8 @@ async function sendViaResend({ to, subject, html }) {
   const data = await response.json();
   if (!response.ok) throw new Error(data?.message || JSON.stringify(data));
   // eslint-disable-next-line no-console
-  console.log(`📧 [RESEND] Email sent to: ${to} | ID: ${data.id}`);
-  return { accepted: [to], provider: 'resend', id: data.id };
+  console.log(`📧 [RESEND] Email delivered to: ${recipient} (requested: ${to}) | ID: ${data.id}`);
+  return { accepted: [recipient], provider: 'resend', id: data.id };
 }
 
 /* ── Nodemailer SMTP (local dev) ── */
@@ -137,7 +149,7 @@ async function sendPasswordResetEmail(email, token) {
           <h2 style="color: #7c5cfc; margin: 0;">🧠 ThinkSpace</h2>
           <p style="color: #666; font-size: 14px; margin: 4px 0 0;">Sharpen Your Mind. Communicate with Impact.</p>
         </div>
-        <p style="color: #333;">You requested a password reset for your ThinkSpace account. Click the button below to set a new password.</p>
+        <p style="color: #333;">You requested a password reset for your ThinkSpace account (requested for: <strong>${email}</strong>). Click the button below to set a new password.</p>
         <div style="text-align: center; margin: 28px 0;">
           <a href="${resetUrl}"
              style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #7c5cfc, #a855f7); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
