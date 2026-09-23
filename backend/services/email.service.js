@@ -9,6 +9,25 @@ const nodemailer = require('nodemailer');
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',')[0].trim();
 const VERIFIED_RESEND_EMAIL = 'contact.srikar.jayanthi@gmail.com';
 
+/* ── Google Apps Script Gmail Relay (Sends to ANY recipient from your Gmail) ── */
+async function sendViaGoogleScript({ to, subject, html }) {
+  const url = process.env.GMAIL_SCRIPT_URL;
+  if (!url) return null;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to, subject, html }),
+    redirect: 'follow',
+  });
+
+  const data = await response.json();
+  if (data?.error) throw new Error(data.error);
+  // eslint-disable-next-line no-console
+  console.log(`📧 [GMAIL-RELAY] Delivered directly to recipient: ${to}`);
+  return { accepted: [to], provider: 'gmail-relay' };
+}
+
 /* ── Resend (HTTP API — works on all cloud hosts) ── */
 async function sendViaResend({ to, subject, html }) {
   // If target is the verified Resend address, send directly.
@@ -76,9 +95,20 @@ async function sendViaSmtp({ to, subject, html }) {
   return info;
 }
 
-/* ── Main sendMail: Resend → SMTP → console fallback ── */
+/* ── Main sendMail: Google Relay → Resend → SMTP → console fallback ── */
 async function sendMail({ to, subject, html }) {
-  // 1. Try Resend first (HTTP — works on Render free tier)
+  // 1. Try Google Apps Script Relay first if configured (can send to ANY recipient in the world!)
+  if (process.env.GMAIL_SCRIPT_URL) {
+    try {
+      const res = await sendViaGoogleScript({ to, subject, html });
+      if (res) return res;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('❌ [GMAIL-RELAY] Failed:', err.message, '— falling back to Resend');
+    }
+  }
+
+  // 2. Try Resend (HTTP — works on Render free tier)
   if (process.env.RESEND_API_KEY) {
     try {
       return await sendViaResend({ to, subject, html });
@@ -88,7 +118,7 @@ async function sendMail({ to, subject, html }) {
     }
   }
 
-  // 2. Try SMTP (works locally with Gmail App Password)
+  // 3. Try SMTP (works locally with Gmail App Password)
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       return await sendViaSmtp({ to, subject, html });
@@ -98,7 +128,7 @@ async function sendMail({ to, subject, html }) {
     }
   }
 
-  // 3. Console fallback — registration never breaks even without email config
+  // 4. Console fallback — registration never breaks even without email config
   // eslint-disable-next-line no-console
   console.log('\n📧 ══════════════════════════════════════');
   // eslint-disable-next-line no-console
