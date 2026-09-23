@@ -1,93 +1,60 @@
 const nodemailer = require('nodemailer');
 
 /* ─────────────────────────────────────────────────────────────
-   Email Service — Dual-mode:
-     1. Resend HTTP API (production — bypasses Render SMTP block)
-     2. Nodemailer SMTP (local dev fallback)
+   Email Service — Nodemailer SMTP via Gmail App Password
+   SMTP_USER = contact.srikar.jayanthi@gmail.com
+   SMTP_PASS = Gmail App Password (16 chars)
 ───────────────────────────────────────────────────────────── */
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',')[0].trim();
 
-/* ── Resend (HTTP API — works on all cloud hosts) ── */
-async function sendViaResend({ to, subject, html }) {
-  const { Resend } = require('resend');
-  const resend = new Resend(RESEND_API_KEY);
-
-  const fromAddress = process.env.FROM_EMAIL || 'DebateForge <onboarding@resend.dev>';
-
-  const { data, error } = await resend.emails.send({
-    from: fromAddress,
-    to,
-    subject,
-    html,
-  });
-
-  if (error) throw new Error(error.message || JSON.stringify(error));
-  // eslint-disable-next-line no-console
-  console.log('📧 [RESEND] Email sent successfully:', data?.id, '→', to);
-  return { accepted: [to], provider: 'resend', id: data?.id };
-}
-
-/* ── Nodemailer SMTP (local dev) ── */
+/* ── SMTP Transporter (Gmail) ── */
 let _smtpTransporter;
 function getSmtpTransporter() {
   if (_smtpTransporter) return _smtpTransporter;
-  const SMTP_PORT = parseInt(process.env.SMTP_PORT, 10) || 465;
   _smtpTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
   return _smtpTransporter;
 }
 
-async function sendViaSmtp({ to, subject, html }) {
-  const FROM = process.env.SMTP_USER || process.env.FROM_EMAIL || 'noreply@debateforge.com';
-  const transporter = getSmtpTransporter();
-  const info = await transporter.sendMail({
-    from: `"DebateForge" <${FROM}>`,
-    to,
-    subject,
-    html,
-  });
-  return info;
-}
-
-/* ── Main sendMail: Resend → SMTP → console fallback ── */
+/* ── Main sendMail ── */
 async function sendMail({ to, subject, html }) {
-  // 1. Try Resend (HTTP — works on Render free tier)
-  if (RESEND_API_KEY) {
-    try {
-      return await sendViaResend({ to, subject, html });
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('❌ [RESEND] Failed:', err.message, '— falling back to SMTP');
-    }
-  }
+  const FROM = process.env.SMTP_USER || 'noreply@thinkspace.app';
 
-  // 2. Try SMTP (works locally)
+  // Send via Gmail SMTP if credentials are set
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
-      return await sendViaSmtp({ to, subject, html });
+      const transporter = getSmtpTransporter();
+      const info = await transporter.sendMail({
+        from: `"ThinkSpace" <${FROM}>`,
+        to,
+        subject,
+        html,
+      });
+      // eslint-disable-next-line no-console
+      console.log(`📧 [SMTP] Email sent to: ${to} | ID: ${info.messageId}`);
+      return info;
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error('❌ [SMTP] Failed:', err.message, '— falling back to console log');
+      console.error('❌ [SMTP] Failed:', err.message);
     }
   }
 
-  // 3. Console fallback (so registration doesn't break even without email config)
+  // Console fallback (so registration never breaks even without email config)
   // eslint-disable-next-line no-console
   console.log('\n📧 ══════════════════════════════════════');
   // eslint-disable-next-line no-console
-  console.log(`   ⚠️  No email provider configured — logging to console`);
+  console.log(`   ⚠️  No SMTP configured — logging to console`);
   // eslint-disable-next-line no-console
   console.log(`   To: ${to}`);
   // eslint-disable-next-line no-console
@@ -102,20 +69,25 @@ async function sendMail({ to, subject, html }) {
 /* ── OTP Verification Email ── */
 async function sendVerificationEmail(email, otp) {
   // eslint-disable-next-line no-console
-  console.log(`\n📧 Sending OTP email to: ${email} | OTP: ${otp}`);
+  console.log(`\n📧 Sending OTP to: ${email} | OTP: ${otp}`);
   return sendMail({
     to: email,
-    subject: 'DebateForge — Email Verification Code',
+    subject: 'ThinkSpace — Email Verification Code',
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-        <h2 style="color: #7c5cfc;">⚔ DebateForge</h2>
-        <p>Welcome to DebateForge! Please use the verification code below to activate your account.</p>
-        <div style="background: #f8f9fa; border: 2px dashed #7c5cfc; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
-          <span style="font-size: 32px; font-weight: bold; color: #7c5cfc; letter-spacing: 4px;">${otp}</span>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #7c5cfc; margin: 0;">🧠 ThinkSpace</h2>
+          <p style="color: #666; font-size: 14px; margin: 4px 0 0;">Sharpen Your Mind. Communicate with Impact.</p>
         </div>
-        <p style="color: #888; font-size: 13px;">Enter this 6-digit code in the verification page to complete your registration.</p>
+        <p style="color: #333;">Welcome to ThinkSpace! Use the verification code below to activate your account.</p>
+        <div style="background: #f4f0ff; border: 2px dashed #7c5cfc; border-radius: 10px; padding: 24px; text-align: center; margin: 24px 0;">
+          <p style="margin: 0 0 8px; color: #666; font-size: 13px;">Your verification code</p>
+          <span style="font-size: 36px; font-weight: bold; color: #7c5cfc; letter-spacing: 6px;">${otp}</span>
+        </div>
+        <p style="color: #555; font-size: 14px;">Enter this 6-digit code on the verification page to complete your registration.</p>
         <p style="color: #e74c3c; font-size: 13px; font-weight: 600;">⏰ This code expires in 10 minutes.</p>
-        <p style="color: #888; font-size: 13px;">If you didn't create this account, you can safely ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+        <p style="color: #aaa; font-size: 12px;">If you didn't create a ThinkSpace account, you can safely ignore this email.</p>
       </div>
     `,
   });
@@ -126,18 +98,26 @@ async function sendPasswordResetEmail(email, token) {
   const resetUrl = `${FRONTEND_URL}/reset-password/${token}`;
   return sendMail({
     to: email,
-    subject: 'DebateForge — Reset your password',
+    subject: 'ThinkSpace — Reset Your Password',
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-        <h2 style="color: #7c5cfc;">⚔ DebateForge</h2>
-        <p>You requested a password reset. Click the button below to set a new password.</p>
-        <a href="${resetUrl}"
-           style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #7c5cfc, #a855f7); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0;">
-          Reset Password
-        </a>
-        <p style="color: #888; font-size: 13px;">Or copy this link: ${resetUrl}</p>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff; border-radius: 12px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #7c5cfc; margin: 0;">🧠 ThinkSpace</h2>
+          <p style="color: #666; font-size: 14px; margin: 4px 0 0;">Sharpen Your Mind. Communicate with Impact.</p>
+        </div>
+        <p style="color: #333;">You requested a password reset for your ThinkSpace account. Click the button below to set a new password.</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${resetUrl}"
+             style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #7c5cfc, #a855f7); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Reset My Password
+          </a>
+        </div>
+        <p style="color: #888; font-size: 13px;">Or copy and paste this link into your browser:<br>
+          <a href="${resetUrl}" style="color: #7c5cfc;">${resetUrl}</a>
+        </p>
         <p style="color: #e74c3c; font-size: 13px; font-weight: 600;">⏰ This link expires in 1 hour.</p>
-        <p style="color: #888; font-size: 13px;">If you didn't request this, you can safely ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+        <p style="color: #aaa; font-size: 12px;">If you didn't request a password reset, you can safely ignore this email. Your password will not change.</p>
       </div>
     `,
   });
