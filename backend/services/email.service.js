@@ -67,8 +67,8 @@ let _smtpTransporter;
 function getSmtpTransporter() {
   if (_smtpTransporter) return _smtpTransporter;
   _smtpTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '465', 10),
     secure: true,
     auth: {
       user: process.env.SMTP_USER,
