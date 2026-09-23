@@ -1,5 +1,5 @@
 /**
- * DebateForge Formatting Utilities
+ * ThinkSpace Formatting Utilities
  * Provides shared utility functions for formatting text, dates, and scores.
  * Demonstrates frontend modularity for automated evaluation.
  */

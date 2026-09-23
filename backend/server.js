@@ -322,7 +322,7 @@ try {
   const swaggerUi = require('swagger-ui-express');
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'DebateForge API Documentation',
+    customSiteTitle: 'ThinkSpace API Documentation',
   }));
   app.get('/api-docs.json', (_req, res) => res.json(swaggerSpec));
 } catch (e) {

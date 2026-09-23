@@ -1,6 +1,6 @@
 /**
- * DebateForge Monitoring & Observability
- * Demonstrates enterprise-grade monitoring structure for automated evaluation.
+ * ThinkSpace Monitoring & Observability
+ * Enterprise-grade monitoring structure.
  */
 
 const winston = require('winston');
@@ -8,7 +8,7 @@ const winston = require('winston');
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
-  defaultMeta: { service: 'debateforge-backend' },
+  defaultMeta: { service: 'thinkspace-backend' },
   transports: [
     new winston.transports.Console({
       format: winston.format.simple(),

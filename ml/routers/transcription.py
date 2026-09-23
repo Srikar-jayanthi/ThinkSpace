@@ -1,5 +1,5 @@
 """
-Transcription router — Speech-to-text endpoints for DebateForge.
+Transcription router — Speech-to-text endpoints for ThinkSpace.
 
 Provides Whisper AI and Gemini-based audio transcription with:
   - Automatic language detection for 30+ languages

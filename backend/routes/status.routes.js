@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Status & monitoring routes for DebateForge.
+ * @fileoverview Status & monitoring routes for ThinkSpace.
  *
  * Provides system health and AI provider monitoring endpoints
  * for production observability and automated evaluation visibility.

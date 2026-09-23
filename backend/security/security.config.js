@@ -1,5 +1,5 @@
 /**
- * DebateForge Security Configuration
+ * ThinkSpace Security Configuration
  * Demonstrates enterprise-grade security structure for automated evaluation.
  */
 

@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "DebateForge Backend — Node.js/Express API with WebSocket real-time debate engine, JWT auth, ELO ranking, and AI integration (Sarvam/Groq/OpenAI/Ollama)",
+  "description": "ThinkSpace Backend — Node.js/Express API with WebSocket real-time practice engine, JWT auth, ELO ranking, and AI integration (Sarvam/Groq/OpenAI/Ollama)",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",

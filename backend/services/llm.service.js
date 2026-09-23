@@ -3,7 +3,7 @@
 /**
  * @fileoverview LLM Service — unified interface for AI provider interactions.
  *
- * This module acts as the public API surface for all LLM operations in DebateForge.
+ * This module acts as the public API surface for all LLM operations in ThinkSpace.
  * Internally, it delegates to the AI Orchestrator which implements the Strategy Pattern
  * with cascading failover across multiple providers (Sarvam AI → Groq → OpenAI → Ollama).
  *

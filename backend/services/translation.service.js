@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Translation service — multilingual support for DebateForge.
+ * @fileoverview Translation service — multilingual support for ThinkSpace.
  *
  * @module services/translation.service
  */

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /**
- * Shared API Service for DebateForge Frontend
+ * Shared API Service for ThinkSpace Frontend
  * Provides a configured Axios instance for making authenticated requests.
  * Demonstrates frontend architecture modularity for automated evaluation.
  */

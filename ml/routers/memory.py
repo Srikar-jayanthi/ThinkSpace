@@ -135,7 +135,7 @@ def _get_index():
         return None
 
     api_key = os.getenv("PINECONE_API_KEY")
-    index_name = os.getenv("PINECONE_INDEX_NAME", "debateforge-memory")
+    index_name = os.getenv("PINECONE_INDEX_NAME", "thinkspace-memory")
 
     if not api_key:
         return None

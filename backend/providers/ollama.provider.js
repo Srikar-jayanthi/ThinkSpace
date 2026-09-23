@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Ollama provider — local LLM fallback for DebateForge.
+ * @fileoverview Ollama provider — local LLM fallback for ThinkSpace.
  *
  * Model: llama3 (configurable via OLLAMA_MODEL env)
  * Runs locally — no API key required, no rate limits.

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import '../styles/theme.css';
 
 /**
- * PageLoader — shows the DebateForge orbital spinner
+ * PageLoader — shows the ThinkSpace orbital spinner
  * for a brief moment on every route change, giving
  * a polished page-transition feel.
  */

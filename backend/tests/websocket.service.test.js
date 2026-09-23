@@ -1,5 +1,5 @@
 /**
- * @fileoverview WebSocket integration tests for DebateForge real-time debate engine.
+ * @fileoverview WebSocket integration tests for ThinkSpace real-time debate engine.
  *
  * Tests cover:
  * - Socket.IO connection with JWT authentication

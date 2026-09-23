@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Groq provider for DebateForge AI debates.
+ * @fileoverview Groq provider for ThinkSpace AI debates.
  *
  * Model: llama-3.3-70b-versatile
  * Key advantages:

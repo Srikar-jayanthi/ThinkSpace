@@ -1,6 +1,6 @@
-# DebateForge ML Service Architecture
+# ThinkSpace ML Service Architecture
 
-This microservice handles the heavy NLP and Machine Learning workloads for the DebateForge platform. 
+This microservice handles the heavy NLP and Machine Learning workloads for the ThinkSpace platform.
 It uses a FastAPI architecture with specialized routers to maintain modularity.
 
 ## NLP Routers Overview

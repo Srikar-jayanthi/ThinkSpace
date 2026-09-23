@@ -1,5 +1,5 @@
 /**
- * @fileoverview billing.controller.js — DebateForge Stripe Billing
+ * @fileoverview billing.controller.js — ThinkSpace Stripe Billing
  *
  * Handles:
  *   POST /api/billing/create-checkout-session  — Start Stripe Checkout

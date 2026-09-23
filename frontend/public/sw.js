@@ -6,7 +6,7 @@ self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
 
   const options = {
-    body: data.body || 'Time to debate!',
+    body: data.body || 'Time to practice!',
     icon: data.icon || '/logo192.png',
     badge: '/logo192.png',
     vibrate: [100, 50, 100],
@@ -18,7 +18,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'DebateForge', options)
+    self.registration.showNotification(data.title || 'ThinkSpace', options)
   );
 });
 

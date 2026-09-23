@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Sarvam AI provider for DebateForge — optimized for Indian languages.
+ * @fileoverview Sarvam AI provider for ThinkSpace — optimized for Indian languages.
  *
  * Model: sarvam-m
  * Specialized for: Telugu, Hindi, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Urdu

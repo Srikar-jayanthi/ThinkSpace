@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview OpenAI provider for DebateForge AI debates.
+ * @fileoverview OpenAI provider for ThinkSpace AI debates.
  *
  * Model: gpt-4o-mini (fast, cost-effective, multilingual)
  * Features:

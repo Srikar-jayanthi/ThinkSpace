@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Abstract base class for AI providers in DebateForge.
+ * @fileoverview Abstract base class for AI providers in ThinkSpace.
  *
  * All AI providers (OpenAI, Groq, Sarvam AI, Ollama) implement this interface,
  * enabling the AI Orchestrator to swap providers transparently via the

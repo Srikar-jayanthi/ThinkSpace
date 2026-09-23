@@ -3,10 +3,10 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
 /**
- * @fileoverview OpenAPI 3.0 specification for DebateForge REST API.
+ * @fileoverview OpenAPI 3.0 specification for ThinkSpace REST API.
  *
  * Provides interactive API documentation at /api-docs.
- * Covers all authentication, debate lifecycle, profile management,
+ * Covers all authentication, practice session lifecycle, profile management,
  * topic discovery, and push notification endpoints.
  *
  * WebSocket events are documented separately in API_DOCS.md.
@@ -16,10 +16,10 @@ const options = {
   definition: {
     openapi: '3.0.3',
     info: {
-      title: 'DebateForge API',
+      title: 'ThinkSpace API',
       version: '1.0.0',
       description:
-        'AI-powered debate practice platform with real-time voice/text debates, ' +
+        'AI-powered critical thinking and communication practice platform with real-time voice/text sessions, ' +
         'fallacy detection, intelligent counterarguments, ELO ranking, and adaptive coaching.\n\n' +
         '## Architecture\n' +
         '- **Backend**: Node.js / Express 5 / Socket.IO\n' +
@@ -32,8 +32,8 @@ const options = {
         '- HTTP-only cookie (`token`), or\n' +
         '- `Authorization: Bearer <token>` header',
       contact: {
-        name: 'DebateForge Team',
-        url: 'https://github.com/Shameer767400/DebateForge',
+        name: 'ThinkSpace Team',
+        url: 'https://github.com/Srikar-jayanthi/ThinkSpace',
       },
       license: {
         name: 'MIT',
@@ -41,8 +41,8 @@ const options = {
       },
     },
     servers: [
-      { url: 'http://localhost:5001', description: 'Local development' },
-      { url: 'https://debateforge-backend.onrender.com', description: 'Production (Render)' },
+      { url: 'http://localhost:5000', description: 'Local development' },
+      { url: 'https://thinkspace-backend.onrender.com', description: 'Production (Render)' },
     ],
     tags: [
       { name: 'Auth', description: 'Authentication, registration, email verification, password management' },

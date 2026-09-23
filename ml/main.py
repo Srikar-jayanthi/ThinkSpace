@@ -1,5 +1,5 @@
 """
-DebateForge ML Service — AI-powered debate analysis microservice.
+ThinkSpace ML Service — AI-powered debate analysis microservice.
 
 Provides four core capabilities via REST API:
   1. /fallacy  — Multi-layer fallacy detection (rule-based + semantic + SpaCy NLP)

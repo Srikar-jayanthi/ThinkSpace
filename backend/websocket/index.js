@@ -1,6 +1,6 @@
 const secLogger = require('../services/security-logger.service');
 /**
- * @fileoverview Real-time WebSocket debate engine for DebateForge.
+ * @fileoverview Real-time WebSocket debate engine for ThinkSpace.
  *
  * Built on Socket.IO, this module manages the full lifecycle of a live debate session:
  *   1. JWT authentication middleware

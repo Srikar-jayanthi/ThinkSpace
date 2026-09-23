@@ -1,5 +1,5 @@
 /**
- * @fileoverview PricingPage — DebateForge SaaS Pricing
+ * @fileoverview PricingPage — ThinkSpace SaaS Pricing
  *
  * 4-tier pricing:
  *   Free → Pro ($12/mo) → Institution ($299/mo) → Enterprise (custom)

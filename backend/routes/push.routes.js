@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Push notification routes for DebateForge.
+ * @fileoverview Push notification routes for ThinkSpace.
  *
  * @swagger
  * tags:

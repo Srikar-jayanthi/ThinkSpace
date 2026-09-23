@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @fileoverview Time-Series Metrics Service for DebateForge.
+ * @fileoverview Time-Series Metrics Service for ThinkSpace.
  *
  * Records and retrieves timestamped platform metrics using Redis sorted sets.
  * Designed as the foundation for the analytics dashboard roadmap item,
