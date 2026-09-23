@@ -447,10 +447,7 @@ async function forgotPassword(req, res) {
 
     secLogger.logPasswordReset(req, email);
 
-    return res.status(200).json({ 
-      message: successMsg,
-      resetUrl,
-    });
+    return res.status(200).json({ message: successMsg });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error in forgotPassword controller:', error);

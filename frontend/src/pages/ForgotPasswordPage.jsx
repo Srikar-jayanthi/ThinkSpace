@@ -7,7 +7,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [resetUrl, setResetUrl] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -16,14 +15,11 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
+      await axios.post(
         '/api/auth/forgot-password',
         { email },
         { baseURL: process.env.REACT_APP_API_URL || '' }
       );
-      if (res.data?.resetUrl) {
-        setResetUrl(res.data.resetUrl);
-      }
       setSent(true);
     } catch (err) {
       const msg = err.response?.data?.error || 'Something went wrong. Please try again.';
@@ -46,41 +42,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          {resetUrl && (
-            <div style={{
-              background: 'rgba(124, 92, 252, 0.1)',
-              border: '1px solid rgba(124, 92, 252, 0.3)',
-              borderRadius: '10px',
-              padding: '16px',
-              marginTop: '16px',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '0.84rem', color: '#a78bfa', fontWeight: 600, marginBottom: '6px' }}>
-                ⚡ Review / Evaluation Mode
-              </div>
-              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0 0 12px' }}>
-                For instant reviewer verification (bypasses DNS email delays):
-              </p>
-              <a
-                href={resetUrl}
-                style={{
-                  display: 'inline-block',
-                  background: 'linear-gradient(135deg, #7c5cfc, #a855f7)',
-                  color: '#ffffff',
-                  textDecoration: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
-                  boxShadow: '0 4px 12px rgba(124, 92, 252, 0.35)'
-                }}
-              >
-                Reset Password Directly →
-              </a>
-            </div>
-          )}
-
-          <p className="auth-switch" style={{ marginTop: '16px' }}>
+          <p className="auth-switch" style={{ marginTop: '20px' }}>
             <Link to="/login" className="retro-back-link">← Back to Login</Link>
           </p>
         </div>
