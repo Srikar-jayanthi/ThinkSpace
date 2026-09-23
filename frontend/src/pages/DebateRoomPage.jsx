@@ -262,7 +262,7 @@ export default function DebateRoomPage() {
   const [debateInfo,     setDebateInfo]     = useState(null);
   const [phase,          setPhase]          = useState('user_turn');
   const [messages,       setMessages]       = useState([]);
-  const [currentScores,  setCurrentScores]  = useState({ logic: 0, evidence: 0, clarity: 0 });
+  const [currentScores,  setCurrentScores]  = useState({ logic: null, evidence: null, clarity: null });
   const [fallacyAlert,   setFallacyAlert]   = useState(null);
   const [fallacyHistory, setFallacyHistory] = useState([]);
   const [round,          setRound]          = useState(1);
@@ -350,11 +350,13 @@ export default function DebateRoomPage() {
 
       /* Live score update after ML scoring */
       case 'scores_update':
-        setCurrentScores({
-          logic:    data.logic    ?? 0,
-          evidence: data.evidence ?? 0,
-          clarity:  data.clarity  ?? 0,
-        });
+        if (!data?.isGreeting && !data?.is_greeting && (data?.logic != null || data?.overall != null)) {
+          setCurrentScores({
+            logic:    data.logic != null ? Math.round(data.logic) : 70,
+            evidence: data.evidence != null ? Math.round(data.evidence) : 65,
+            clarity:  data.clarity != null ? Math.round(data.clarity) : 75,
+          });
+        }
         /* Attach scores to the most recent user message */
         setMessages((prev) => {
           const last = [...prev].reverse().find((m) => m.speaker === 'user');
@@ -1042,8 +1044,9 @@ export default function DebateRoomPage() {
               { key: 'evidence', label: 'Evidence', color: 'var(--accent-blue)',  cls: 'score-pill--evidence' },
               { key: 'clarity',  label: 'Clarity',  color: 'var(--accent-score)', cls: 'score-pill--clarity' },
             ].map(({ key, label, color }) => {
-              const val = currentScores[key] ?? 0;
-              const offset = SCORE_C - (val / 100) * SCORE_C;
+              const val = currentScores[key];
+              const displayVal = val != null ? val : '—';
+              const offset = val != null ? SCORE_C - (Math.min(100, Math.max(0, val)) / 100) * SCORE_C : SCORE_C;
               return (
                 <div key={key} className="score-ring-row">
                   <div className="score-ring-wrap">
@@ -1059,13 +1062,15 @@ export default function DebateRoomPage() {
                         stroke={color}
                       />
                     </svg>
-                    <div className="score-ring-val" style={{ color }}>
-                      {val}
+                    <div className="score-ring-val" style={{ color: val != null ? color : 'var(--text-muted)' }}>
+                      {displayVal}
                     </div>
                   </div>
                   <div className="score-label-col">
                     <span className="score-name">{label}</span>
-                    <span className="score-number" style={{ color }}>{val}</span>
+                    <span className="score-number" style={{ color: val != null ? color : 'var(--text-muted)', fontSize: val != null ? '0.9rem' : '0.78rem' }}>
+                      {val != null ? val : 'Awaiting thesis'}
+                    </span>
                   </div>
                 </div>
               );
@@ -1074,16 +1079,28 @@ export default function DebateRoomPage() {
 
           {/* Session tracker */}
           <div>
-            <div className="panel-section-title">Session</div>
+            <div className="panel-section-title">Session Standing</div>
             <div className="session-tracker">
-              <div className="tracker-box tracker-box--user">
-                <div className="tracker-label">You</div>
-                <div className="tracker-count">{userWins}</div>
-              </div>
-              <div className="tracker-box tracker-box--ai">
-                <div className="tracker-label">AI</div>
-                <div className="tracker-count">{aiWins}</div>
-              </div>
+              {(() => {
+                const scoredTurns = (messages || []).filter(
+                  (m) => m.speaker === 'user' && m.scores && !m.scores.isGreeting && !m.scores.is_greeting && m.scores.logic != null
+                );
+                const avgUserScore = scoredTurns.length > 0
+                  ? Math.round(scoredTurns.reduce((sum, m) => sum + (m.scores.overall || Math.round(((m.scores.logic || 0) + (m.scores.evidence || 0) + (m.scores.clarity || 0)) / 3)), 0) / scoredTurns.length)
+                  : null;
+                return (
+                  <>
+                    <div className="tracker-box tracker-box--user">
+                      <div className="tracker-label">Your Avg Score</div>
+                      <div className="tracker-count">{avgUserScore != null ? avgUserScore : '—'}</div>
+                    </div>
+                    <div className="tracker-box tracker-box--ai">
+                      <div className="tracker-label">Coach Target</div>
+                      <div className="tracker-count" style={{ color: 'var(--accent-score)' }}>70</div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
